@@ -4,124 +4,213 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="referrer" content="no-referrer">
+  <meta name="color-scheme" content="dark">
   <title>Claude Env Manager</title>
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <div class="backdrop" aria-hidden="true"><span class="glow g1"></span><span class="glow g2"></span><span class="swarm"></span></div>
+
   <header class="top">
-    <div class="brand">
-      <span class="logo" aria-hidden="true">{ }</span>
-      <div>
-        <h1>Claude Env Manager</h1>
-        <p class="sub">The environment variables Claude Code sees, where each comes from, and how to fix it.</p>
+    <div class="top-inner glass">
+      <div class="brand">
+        <span class="mark" aria-hidden="true">{<i></i>}</span>
+        <div>
+          <p class="brand-name">Claude Env Manager<span class="dot-gold">.</span></p>
+          <p class="brand-sub">Local only · no telemetry</p>
+        </div>
       </div>
-    </div>
-    <div class="top-actions">
-      <div class="local-badge" title="The app only talks to a server on 127.0.0.1. No telemetry, nothing leaves this machine.">
-        <span class="dot"></span> Local only
+      <nav class="tabs" role="tablist" aria-label="Sections">
+        <button role="tab" class="tab active" aria-selected="true" data-tab="vars">Variables</button>
+        <button role="tab" class="tab" aria-selected="false" data-tab="monitor">Monitor</button>
+        <button role="tab" class="tab" aria-selected="false" data-tab="cloud">Cloud sessions</button>
+        <button role="tab" class="tab" aria-selected="false" data-tab="guide">How it works</button>
+      </nav>
+      <div class="top-actions">
+        <span class="live" title="The app only talks to a server on 127.0.0.1. Nothing leaves this computer."><span class="pulse"></span>127.0.0.1</span>
+        <button id="quitBtn" class="btn ghost small" title="Stop the app on this computer">Quit</button>
       </div>
-      <button id="quitBtn" class="btn ghost small" title="Stop the app on this computer">Quit</button>
     </div>
   </header>
 
-  <section class="project-bar">
-    <label for="project">Project folder</label>
-    <input id="project" type="text" spellcheck="false" autocomplete="off" placeholder="/path/to/your/repo (leave empty for user settings only)">
-    <button id="loadProject" class="btn">Open</button>
-    <button id="refresh" class="btn ghost" title="Re-read every settings file">Refresh</button>
-  </section>
-
-  <nav class="tabs" role="tablist">
-    <button role="tab" class="tab active" data-tab="vars">Variables</button>
-    <button role="tab" class="tab" data-tab="monitor">Monitor</button>
-    <button role="tab" class="tab" data-tab="cloud">Cloud sessions</button>
-  </nav>
-
-  <main>
-    <div id="banner" class="banner hidden" role="status"></div>
-
-    <!-- Variables -->
-    <section id="tab-vars" class="panel">
-      <div class="panel-head">
-        <p class="hint">Values are hidden. Reveal one at a time when you need it. Changes are saved straight to Claude's settings files, and a running Claude session picks them up on save.</p>
-        <button id="addBtn" class="btn primary">+ Add variable</button>
-      </div>
-      <div id="scopes"></div>
+  <div class="wrap">
+    <section class="project-bar glass" aria-label="Project">
+      <label for="project" class="eyebrow-label">Project folder</label>
+      <input id="project" type="text" spellcheck="false" autocomplete="off" placeholder="/path/to/your/repo (leave empty for user settings only)">
+      <button id="loadProject" class="btn">Open</button>
+      <button id="refresh" class="btn ghost" title="Re-read every settings file">Refresh</button>
     </section>
 
-    <!-- Monitor -->
-    <section id="tab-monitor" class="panel hidden">
-      <div class="card">
-        <h2>Is my variable visible to Claude?</h2>
-        <form id="checkForm" class="row">
-          <input id="checkName" type="text" placeholder="FAL_KEY" spellcheck="false" autocomplete="off" aria-label="Variable name">
-          <button class="btn primary">Check</button>
-        </form>
-        <div id="checkResult"></div>
-      </div>
+    <main>
+      <div id="banner" class="banner hidden" role="status"></div>
 
-      <div class="card">
-        <div class="card-head">
-          <h2>What Claude on this computer will see</h2>
-          <label class="toggle"><input id="incShell" type="checkbox"> Include shell variables</label>
+      <!-- Variables -->
+      <section id="tab-vars" class="panel" role="tabpanel">
+        <div class="intro">
+          <p class="eyebrow"><span class="rule"></span>01<span class="eyebrow-text">Variables</span></p>
+          <h1 class="display">Every key Claude reads<span class="dot-gold">.</span></h1>
+          <div class="intro-row">
+            <p class="lede">Values stay hidden until you reveal one. Saving writes straight to Claude's settings files, and a running Claude session on this computer picks the change up on save.</p>
+            <button id="addBtn" class="btn primary">+ Add variable</button>
+          </div>
         </div>
-        <p class="hint">Highest priority wins: Managed, then Project local, then Project shared, then User, then your shell. A settings file value replaces the same name from your shell.</p>
-        <input id="filter" type="search" placeholder="Filter by name" aria-label="Filter">
-        <table class="grid">
-          <thead><tr><th>Name</th><th>Value</th><th>Comes from</th><th>Also set in (ignored)</th></tr></thead>
-          <tbody id="effective"></tbody>
-        </table>
-      </div>
-    </section>
+        <div id="scopes"></div>
+      </section>
 
-    <!-- Cloud -->
-    <section id="tab-cloud" class="panel hidden">
-      <div class="card">
-        <h2>Claude Code on the web (cloud sessions)</h2>
-        <p>Cloud sessions run on Anthropic's machines, so they never read the User or Project local settings on this computer. There's no public API to set their variables, so add them once on the cloud environment:</p>
-        <ol class="steps">
-          <li>Open Claude Code on the web and go to the settings of the environment your sessions use.</li>
-          <li>Find <b>Environment variables</b>. They take <code>.env</code> format, one <code>KEY=value</code> per line.</li>
-          <li>Paste the lines you copy below and save.</li>
-          <li>Start a <b>new</b> session. Running sessions keep their old values until their machine is rebuilt.</li>
-          <li>Check it arrived with the one-liner at the bottom. It prints the length, never the value.</li>
-        </ol>
-        <div class="note">
-          <b>Good to know.</b> Anyone who can use that environment can read its variables, and any command Claude runs can see them. For an API key that only needs to reach one service, the docs suggest a network secret on the environment instead, which can't be read inside the session.
-          A repo's shared <code>.claude/settings.json</code> is read in cloud sessions only for a single repo outside a Claude project, so don't rely on it, and never commit keys there.
+      <!-- Monitor -->
+      <section id="tab-monitor" class="panel hidden" role="tabpanel">
+        <div class="intro">
+          <p class="eyebrow"><span class="rule"></span>02<span class="eyebrow-text">Monitor</span></p>
+          <h1 class="display">Will Claude see it<span class="dot-gold">?</span></h1>
+          <p class="lede">Check one name, or look through everything Claude on this computer will get. Values are never printed, only their length.</p>
         </div>
-      </div>
-
-      <div class="card">
-        <h2>1. Pick variables to copy</h2>
-        <p class="hint">Uses the value Claude would see on this machine. Values go only to your clipboard.</p>
-        <div id="cloudPick" class="pick"></div>
-        <div class="row">
-          <button id="copyEnv" class="btn primary">Copy .env lines</button>
-          <span id="copyMsg" class="muted"></span>
+        <div class="card glass">
+          <h2>Is my variable visible to Claude on this computer?</h2>
+          <form id="checkForm" class="row">
+            <input id="checkName" type="text" placeholder="FAL_KEY" spellcheck="false" autocomplete="off" aria-label="Variable name">
+            <button class="btn primary">Check</button>
+          </form>
+          <div id="checkResult" aria-live="polite"></div>
         </div>
-        <pre id="envPreview" class="code"></pre>
-      </div>
 
-      <div class="card">
-        <h2>2. Check it inside a session</h2>
-        <p class="hint">Ask Claude to run this in a cloud session, or run it in any terminal.</p>
-        <div class="row">
-          <input id="snipName" type="text" value="FAL_KEY" spellcheck="false" autocomplete="off" aria-label="Variable name">
-          <button id="copySnip" class="btn">Copy command</button>
+        <div class="card glass">
+          <div class="card-head">
+            <h2>What Claude on this computer will see</h2>
+            <label class="toggle"><input id="incShell" type="checkbox"><span class="switch" aria-hidden="true"></span> Include shell variables</label>
+          </div>
+          <p class="hint">Highest priority wins: Managed, then Project local, then Project shared, then User, then your shell. A settings file value replaces the same name from your shell.</p>
+          <input id="filter" type="search" placeholder="Filter by name" aria-label="Filter">
+          <div class="table-wrap">
+            <table class="grid">
+              <thead><tr><th>Name</th><th>Value</th><th>Comes from</th><th>Also set in (ignored)</th></tr></thead>
+              <tbody id="effective"></tbody>
+            </table>
+          </div>
         </div>
-        <pre id="snippet" class="code"></pre>
-      </div>
-    </section>
-  </main>
+      </section>
 
-  <footer class="foot">
-    <span id="ver"></span> · Open source · Runs on 127.0.0.1 · No telemetry
-  </footer>
+      <!-- Cloud -->
+      <section id="tab-cloud" class="panel hidden" role="tabpanel">
+        <div class="intro">
+          <p class="eyebrow"><span class="rule"></span>03<span class="eyebrow-text">Cloud sessions</span></p>
+          <h1 class="display">Keys for Claude in the cloud<span class="dot-gold">.</span></h1>
+          <p class="lede">Cloud sessions run on Anthropic's machines, so they never read the settings on this computer. Their variables live on the cloud environment, and you add them there once.</p>
+        </div>
+        <div class="card glass">
+          <h2>Set it up</h2>
+          <ol class="steps">
+            <li>Open Claude Code on the web and go to the settings of the environment your sessions use.</li>
+            <li>Find <b>Environment variables</b>. They take <code>.env</code> format, one <code>KEY=value</code> per line.</li>
+            <li>Paste the lines you copy below and save.</li>
+            <li>Start a <b>new</b> session. Running sessions keep their old values until their machine is rebuilt.</li>
+            <li>Check it arrived with the one-liner below. It prints the length, never the value.</li>
+          </ol>
+          <div class="note">
+            <b>Good to know.</b> Anyone who can use that environment can read its variables, and any command Claude runs can see them. For an API key that only needs to reach one service, the docs suggest a network secret on the environment instead, which can't be read inside the session.
+            A repo's shared <code>.claude/settings.json</code> is read in cloud sessions only for a single repo outside a Claude project, so don't rely on it, and never commit keys there.
+          </div>
+        </div>
+
+        <div class="split">
+          <div class="card glass">
+            <h2><span class="num">1</span>Pick variables to copy</h2>
+            <p class="hint">Uses the value Claude would see on this computer. Values go only to your clipboard.</p>
+            <div id="cloudPick" class="pick"></div>
+            <div class="row">
+              <button id="copyEnv" class="btn primary">Copy .env lines</button>
+              <span id="copyMsg" class="muted" aria-live="polite"></span>
+            </div>
+            <pre id="envPreview" class="code"></pre>
+          </div>
+
+          <div class="card glass">
+            <h2><span class="num">2</span>Check it inside a session</h2>
+            <p class="hint">Ask Claude to run this in a cloud session, or run it in any terminal.</p>
+            <div class="row">
+              <input id="snipName" type="text" value="FAL_KEY" spellcheck="false" autocomplete="off" aria-label="Variable name">
+              <button id="copySnip" class="btn">Copy command</button>
+            </div>
+            <pre id="snippet" class="code"></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- Guide -->
+      <section id="tab-guide" class="panel hidden guide" role="tabpanel">
+        <div class="intro">
+          <p class="eyebrow"><span class="rule"></span>04<span class="eyebrow-text">How it works</span></p>
+          <h1 class="display">Where Claude finds your keys<span class="dot-gold">.</span></h1>
+          <p class="lede">Claude Code reads environment variables from a few places, in a fixed order, and cloud sessions read from a different place entirely. Most "Claude can't see my key" problems come down to one of the cases below.</p>
+        </div>
+
+        <h2 class="section-title"><span class="rule"></span>Two kinds of Claude</h2>
+        <div class="split">
+          <article class="card glass tile">
+            <p class="tile-tag">On this computer</p>
+            <h3>Claude Code in your terminal, editor or desktop app</h3>
+            <p>Reads the settings files on this computer, plus the shell it was started from. This app manages exactly these files.</p>
+            <button class="linkbtn" data-goto="vars">Manage them in Variables</button>
+          </article>
+          <article class="card glass tile">
+            <p class="tile-tag cloud">In the cloud</p>
+            <h3>Claude Code on the web and cloud sessions</h3>
+            <p>Runs on Anthropic's machines and never sees this computer's files. Its keys go in the cloud environment's <b>Environment variables</b> setting.</p>
+            <button class="linkbtn" data-goto="cloud">Set them up in Cloud sessions</button>
+          </article>
+        </div>
+
+        <h2 class="section-title"><span class="rule"></span>The order Claude on this computer reads them</h2>
+        <div class="card glass">
+          <p class="hint">When the same name is set in more than one place, the highest one wins.</p>
+          <ol class="ladder">
+            <li><span class="lv">01</span><div><b>Managed</b><span>Set by an administrator. Can't be overridden.</span><code>managed-settings.json</code></div></li>
+            <li><span class="lv">02</span><div><b>Project local</b><span>This project, just you. The best home for a project's keys. Keep it out of git.</span><code>&lt;repo&gt;/.claude/settings.local.json</code></div></li>
+            <li><span class="lv">03</span><div><b>Project shared</b><span>Committed to the repo and shared with everyone. Never put secrets here.</span><code>&lt;repo&gt;/.claude/settings.json</code></div></li>
+            <li><span class="lv">04</span><div><b>User</b><span>Every project on this computer.</span><code>~/.claude/settings.json</code></div></li>
+            <li><span class="lv">05</span><div><b>Your shell</b><span>Only when Claude is started from a terminal that has the variable. Any settings file wins over it.</span><code>export FAL_KEY=…</code></div></li>
+          </ol>
+        </div>
+
+        <h2 class="section-title"><span class="rule"></span>Claude can't see my key</h2>
+        <div class="card glass">
+          <ol class="checks">
+            <li><b>Is it a cloud session?</b> Cloud sessions ignore every file on this computer. Add the key to the cloud environment, then start a new session. <button class="linkbtn" data-goto="cloud">Cloud sessions</button></li>
+            <li><b>Is it set at all?</b> Type the name into the check on the Monitor page. <button class="linkbtn" data-goto="monitor">Monitor</button></li>
+            <li><b>Is another value winning?</b> If the same name is set higher up, that value is the one Claude gets. Monitor shows where it comes from and what it overrides.</li>
+            <li><b>Is it only in your shell?</b> Claude started from the Dock, Start menu or an editor won't have it. Put it in User or Project local instead.</li>
+            <li><b>Is it a name Claude ignores in project files?</b> A few, like <code>OTEL_*</code> and <code>CLAUDE_CONFIG_DIR</code>, only count from User settings or your shell. The app flags these.</li>
+            <li><b>Did you just remove it?</b> New and changed values apply on save. A removed variable only disappears when Claude is relaunched.</li>
+            <li><b>Does the value use <code>~</code> or <code>$HOME</code>?</b> Values are used exactly as written. Write the full path.</li>
+          </ol>
+        </div>
+
+        <h2 class="section-title"><span class="rule"></span>Keeping keys safe</h2>
+        <div class="split three">
+          <article class="card glass tile"><h3>Out of git</h3><p>Project shared settings are committed. Keep keys in Project local or User, and make sure <code>settings.local.json</code> is ignored. The app warns you when it isn't.</p></article>
+          <article class="card glass tile"><h3>Readable by your tools</h3><p>Any command Claude runs can read the variables it was given, on this computer and in the cloud. Only give Claude the keys a task needs.</p></article>
+          <article class="card glass tile"><h3>Shared in the cloud</h3><p>Everyone who uses a cloud environment can read its variables. For a key that only calls one service, a network secret is safer.</p></article>
+        </div>
+
+        <h2 class="section-title"><span class="rule"></span>What this app does</h2>
+        <div class="card glass">
+          <ul class="facts">
+            <li><b>Runs only on your computer.</b> It listens on 127.0.0.1, with a new random token each run, and makes no outside network calls.</li>
+            <li><b>Shows values only when you ask.</b> The page gets names, a mask and the length. A value is sent only when you press Reveal or copy .env lines.</li>
+            <li><b>Edits safely.</b> It keeps every other setting in the file, writes atomically, and creates new files readable only by you. A file with broken JSON is left alone.</li>
+          </ul>
+          <p class="hint">Sources: Claude Code docs on <a href="https://code.claude.com/docs/en/settings" target="_blank" rel="noopener noreferrer">settings</a>, <a href="https://code.claude.com/docs/en/env-vars" target="_blank" rel="noopener noreferrer">environment variables</a> and <a href="https://code.claude.com/docs/en/cloud-environments" target="_blank" rel="noopener noreferrer">cloud environments</a>. Not affiliated with Anthropic.</p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <span id="ver"></span><span class="sep">·</span>Open source<span class="sep">·</span>Runs on 127.0.0.1<span class="sep">·</span>No telemetry
+    </footer>
+  </div>
 
   <!-- Add / edit dialog -->
-  <dialog id="dlg">
+  <dialog id="dlg" class="glass">
     <form id="dlgForm" method="dialog">
       <h2 id="dlgTitle">Add variable</h2>
       <label>Name
@@ -146,7 +235,7 @@
   </dialog>
 
   <!-- Confirm dialog -->
-  <dialog id="askDlg">
+  <dialog id="askDlg" class="glass">
     <form method="dialog">
       <p id="askMsg"></p>
       <div class="row end">

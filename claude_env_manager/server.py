@@ -26,6 +26,7 @@ from typing import Optional
 from . import __version__, core
 
 UI_DIR = Path(__file__).parent / "ui"
+mimetypes.add_type("font/woff2", ".woff2")
 MAX_BODY = 256 * 1024
 
 

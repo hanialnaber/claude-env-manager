@@ -26,4 +26,4 @@ claude-env = "claude_env_manager.cli:main"
 packages = ["claude_env_manager"]
 
 [tool.setuptools.package-data]
-claude_env_manager = ["ui/*"]
+claude_env_manager = ["ui/*", "ui/fonts/*"]

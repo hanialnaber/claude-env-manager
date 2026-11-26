@@ -74,6 +74,19 @@ class ServerTests(unittest.TestCase):
         status, _, _ = self.req("/../core.py", method="GET", token=False)
         self.assertEqual(status, 404)
 
+    def test_bundled_fonts_and_assets(self):
+        for path, ctype in [("/fonts/archivo.woff2", "font/woff2"), ("/fonts/figtree.woff2", "font/woff2"),
+                            ("/fonts/jetbrains-mono.woff2", "font/woff2"), ("/style.css", "text/css"),
+                            ("/app.js", "javascript")]:
+            status, data, headers = self.req(path, method="GET", token=False)
+            self.assertEqual(status, 200, path)
+            self.assertIn(ctype, headers["Content-Type"], path)
+        status, data, _ = self.req("/", method="GET", token=False)
+        page = data.decode()
+        self.assertNotIn("https://fonts", page)
+        for tab in ("vars", "monitor", "cloud", "guide"):
+            self.assertIn(f'id="tab-{tab}"', page)
+
 
 if __name__ == "__main__":
     unittest.main()

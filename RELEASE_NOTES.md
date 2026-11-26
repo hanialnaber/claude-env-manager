@@ -1,4 +1,6 @@
 **New in 0.1.1**
+- A new look: a dark glass interface in navy and gold, with bundled fonts, so nothing loads from the web.
+- A new **How it works** page: the two kinds of Claude (on your computer and in the cloud), the order Claude reads settings files, a checklist for "Claude can't see my key", and how to keep keys safe.
 - The green badge now reads "Claude on this computer uses this", with a link to the Cloud sessions tab. Settings on your computer don't reach Claude Code cloud sessions, and the old "Claude uses this" made it look like they did.
 
 Claude Env Manager is a small app that shows every environment variable Claude Code will see, where each one comes from, and lets you add, edit and delete them with values hidden. It runs only on your computer.

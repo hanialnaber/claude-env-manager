@@ -111,14 +111,14 @@
       const det = el("details", { class: "shell" }, el("summary", {}, `Shell environment (${shell.vars.length} variables, read-only)`));
       const card = scopeCard(shell, 5, true);
       det.append(card);
-      wrap.append(el("div", { class: "scope" }, el("p", { class: "hint" }, shell.description), det));
+      wrap.append(el("div", { class: "scope glass" }, el("p", { class: "hint" }, shell.description), det));
     }
   }
 
   function scopeCard(s, rank, bare = false) {
     const head = el("div", { class: "scope-head" },
       el("div", {},
-        el("h2", {}, el("span", { class: "rank", title: "Priority: 1 wins" }, rank), s.label,
+        el("h2", {}, el("span", { class: "rank", title: "Priority: 01 wins" }, String(rank).padStart(2, "0")), s.label,
           s.writable ? null : el("span", { class: "badge ro" }, "read-only"),
           s.exists ? null : el("span", { class: "badge" }, "file not created yet")),
         s.path ? el("div", { class: "path" }, s.path) : null,
@@ -135,7 +135,7 @@
       body.push(el("table", { class: "grid" },
         el("thead", {}, el("tr", {}, el("th", {}, "Name"), el("th", {}, "Value"), el("th", {}, "Status"), el("th", {}))), tb));
     }
-    const card = el("div", { class: bare ? "" : "scope" }, bare ? null : head, ...body);
+    const card = el("div", { class: bare ? "" : "scope glass" }, bare ? null : head, ...body);
     return card;
   }
 
@@ -344,18 +344,27 @@
 
   // ---- tabs & project ----
   function goTab(name) {
-    document.querySelectorAll(".tab").forEach((x) => x.classList.toggle("active", x.dataset.tab === name));
-    ["vars", "monitor", "cloud"].forEach((id) => $("tab-" + id).classList.toggle("hidden", id !== name));
+    document.querySelectorAll(".tab").forEach((x) => {
+      const on = x.dataset.tab === name;
+      x.classList.toggle("active", on);
+      x.setAttribute("aria-selected", on ? "true" : "false");
+    });
+    ["vars", "monitor", "cloud", "guide"].forEach((id) => $("tab-" + id).classList.toggle("hidden", id !== name));
     window.scrollTo(0, 0);
   }
   document.querySelectorAll(".tab").forEach((t) => t.addEventListener("click", () => goTab(t.dataset.tab)));
+  document.querySelectorAll("[data-goto]").forEach((b) => b.addEventListener("click", () => goTab(b.dataset.goto)));
   $("loadProject").addEventListener("click", () => { projectPath = $("project").value.trim(); load(); });
   $("project").addEventListener("keydown", (e) => { if (e.key === "Enter") $("loadProject").click(); });
   $("refresh").addEventListener("click", load);
   $("quitBtn").addEventListener("click", async () => {
     if (!(await ask("Quit Claude Env Manager? You can open it again any time.", "Quit"))) return;
     try { await api("quit"); } catch (_) {}
-    document.body.replaceChildren(el("main", {}, el("h1", {}, "Claude Env Manager has stopped."), el("p", { class: "hint" }, "You can close this tab.")));
+    const bg = document.querySelector(".backdrop");
+    document.body.replaceChildren(bg, el("div", { class: "wrap" }, el("div", { class: "intro" },
+      el("p", { class: "eyebrow" }, el("span", { class: "rule" }), "Stopped"),
+      el("h1", { class: "display" }, "Claude Env Manager has stopped", el("span", { class: "dot-gold" }, ".")),
+      el("p", { class: "lede" }, "You can close this tab."))));
   });
 
   load();

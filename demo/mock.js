@@ -46,7 +46,7 @@
     switch (route) {
       case "state":
         return {
-          version: "0.1.0 (demo, example data)", project: P,
+          version: "0.1.1 (demo, example data)", project: P,
           scopes: scopes.map((s) => ({ ...s, env: undefined, vars: Object.keys(s.env).sort((a, b) => a.localeCompare(b)).map((n) => ({
             name: n, masked: mask(s.env[n]), length: s.env[n].length, secret: SECRET.test(n), notes: s.id === "shell" ? [] : notes(n, s.id) })) })),
           effective: [],

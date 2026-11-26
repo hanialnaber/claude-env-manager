@@ -18,6 +18,8 @@ settings at all. This app shows you which one.
 - **Cloud sessions:** step-by-step setup for Claude Code on the web, a "copy as
   .env lines" button for the environment settings box, and a one-line command
   that checks a variable inside a session without printing it.
+- **How it works:** a plain-language guide to where Claude reads variables,
+  local versus cloud sessions, and a checklist for "Claude can't see my key".
 
 Runs on Windows, macOS and Linux. Not affiliated with Anthropic.
 
@@ -167,7 +169,7 @@ claude_env_manager/
   core.py      scopes, precedence, safe reads and writes
   server.py    local web server and its security checks
   cli.py       claude-env serve | list | check
-  ui/          index.html, style.css, app.js (no frameworks)
+  ui/          index.html, style.css, app.js (no frameworks), fonts/
 tests/         unit and server tests
 demo/          offline demo build
 packaging/     desktop app entry point
@@ -176,4 +178,6 @@ packaging/     desktop app entry point
 
 ## License
 
-MIT
+MIT. The bundled fonts in `claude_env_manager/ui/fonts/` (Archivo, Figtree,
+JetBrains Mono) are under the SIL Open Font License; their license files sit
+next to them.
