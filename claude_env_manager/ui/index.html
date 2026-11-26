@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>Claude Env Manager</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">{ }</span>
+      <div>
+        <h1>Claude Env Manager</h1>
+        <p class="sub">The environment variables Claude Code sees, where each comes from, and how to fix it.</p>
+      </div>
+    </div>
+    <div class="top-actions">
+      <div class="local-badge" title="The app only talks to a server on 127.0.0.1. No telemetry, nothing leaves this machine.">
+        <span class="dot"></span> Local only
+      </div>
+      <button id="quitBtn" class="btn ghost small" title="Stop the app on this computer">Quit</button>
+    </div>
+  </header>
+
+  <section class="project-bar">
+    <label for="project">Project folder</label>
+    <input id="project" type="text" spellcheck="false" autocomplete="off" placeholder="/path/to/your/repo (leave empty for user settings only)">
+    <button id="loadProject" class="btn">Open</button>
+    <button id="refresh" class="btn ghost" title="Re-read every settings file">Refresh</button>
+  </section>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" class="tab active" data-tab="vars">Variables</button>
+    <button role="tab" class="tab" data-tab="monitor">Monitor</button>
+    <button role="tab" class="tab" data-tab="cloud">Cloud sessions</button>
+  </nav>
+
+  <main>
+    <div id="banner" class="banner hidden" role="status"></div>
+
+    <!-- Variables -->
+    <section id="tab-vars" class="panel">
+      <div class="panel-head">
+        <p class="hint">Values are hidden. Reveal one at a time when you need it. Changes are saved straight to Claude's settings files, and a running Claude session picks them up on save.</p>
+        <button id="addBtn" class="btn primary">+ Add variable</button>
+      </div>
+      <div id="scopes"></div>
+    </section>
+
+    <!-- Monitor -->
+    <section id="tab-monitor" class="panel hidden">
+      <div class="card">
+        <h2>Is my variable visible to Claude?</h2>
+        <form id="checkForm" class="row">
+          <input id="checkName" type="text" placeholder="FAL_KEY" spellcheck="false" autocomplete="off" aria-label="Variable name">
+          <button class="btn primary">Check</button>
+        </form>
+        <div id="checkResult"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2>What Claude will see</h2>
+          <label class="toggle"><input id="incShell" type="checkbox"> Include shell variables</label>
+        </div>
+        <p class="hint">Highest priority wins: Managed, then Project local, then Project shared, then User, then your shell. A settings file value replaces the same name from your shell.</p>
+        <input id="filter" type="search" placeholder="Filter by name" aria-label="Filter">
+        <table class="grid">
+          <thead><tr><th>Name</th><th>Value</th><th>Comes from</th><th>Also set in (ignored)</th></tr></thead>
+          <tbody id="effective"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Cloud -->
+    <section id="tab-cloud" class="panel hidden">
+      <div class="card">
+        <h2>Claude Code on the web (cloud sessions)</h2>
+        <p>Cloud sessions run on Anthropic's machines, so they never read the User or Project local settings on this computer. There's no public API to set their variables, so add them once on the cloud environment:</p>
+        <ol class="steps">
+          <li>Open Claude Code on the web and go to the settings of the environment your sessions use.</li>
+          <li>Find <b>Environment variables</b>. They take <code>.env</code> format, one <code>KEY=value</code> per line.</li>
+          <li>Paste the lines you copy below and save.</li>
+          <li>Start a <b>new</b> session. Running sessions keep their old values until their machine is rebuilt.</li>
+          <li>Check it arrived with the one-liner at the bottom. It prints the length, never the value.</li>
+        </ol>
+        <div class="note">
+          <b>Good to know.</b> Anyone who can use that environment can read its variables, and any command Claude runs can see them. For an API key that only needs to reach one service, the docs suggest a network secret on the environment instead, which can't be read inside the session.
+          A repo's shared <code>.claude/settings.json</code> is read in cloud sessions only for a single repo outside a Claude project, so don't rely on it, and never commit keys there.
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>1. Pick variables to copy</h2>
+        <p class="hint">Uses the value Claude would see on this machine. Values go only to your clipboard.</p>
+        <div id="cloudPick" class="pick"></div>
+        <div class="row">
+          <button id="copyEnv" class="btn primary">Copy .env lines</button>
+          <span id="copyMsg" class="muted"></span>
+        </div>
+        <pre id="envPreview" class="code"></pre>
+      </div>
+
+      <div class="card">
+        <h2>2. Check it inside a session</h2>
+        <p class="hint">Ask Claude to run this in a cloud session, or run it in any terminal.</p>
+        <div class="row">
+          <input id="snipName" type="text" value="FAL_KEY" spellcheck="false" autocomplete="off" aria-label="Variable name">
+          <button id="copySnip" class="btn">Copy command</button>
+        </div>
+        <pre id="snippet" class="code"></pre>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <span id="ver"></span> · Open source · Runs on 127.0.0.1 · No telemetry
+  </footer>
+
+  <!-- Add / edit dialog -->
+  <dialog id="dlg">
+    <form id="dlgForm" method="dialog">
+      <h2 id="dlgTitle">Add variable</h2>
+      <label>Name
+        <input id="fName" type="text" placeholder="FAL_KEY" spellcheck="false" autocomplete="off" required>
+      </label>
+      <label>Value
+        <span class="pw">
+          <input id="fValue" type="password" autocomplete="new-password" spellcheck="false">
+          <button type="button" id="fShow" class="btn ghost small">Show</button>
+        </span>
+      </label>
+      <label>Save to
+        <select id="fScope"></select>
+      </label>
+      <p id="fScopeHelp" class="hint"></p>
+      <p id="fWarn" class="warn hidden"></p>
+      <div class="row end">
+        <button type="button" id="dlgCancel" class="btn ghost">Cancel</button>
+        <button id="dlgSave" class="btn primary" value="save">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Confirm dialog -->
+  <dialog id="askDlg">
+    <form method="dialog">
+      <p id="askMsg"></p>
+      <div class="row end">
+        <button type="button" id="askNo" class="btn ghost">Cancel</button>
+        <button type="button" id="askYes" class="btn primary">OK</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
