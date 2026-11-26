@@ -39,7 +39,7 @@ def cmd_list(args) -> int:
             print("  (nothing set)")
         for n, v in sorted(s.env.items()):
             print(f"  {n:<36} {core.mask(v)}  {len(v)} chars")
-    print("\nWhat Claude will see (settings files):")
+    print("\nWhat Claude on this computer will see (settings files):")
     for r in core.effective(scopes):
         extra = f", overrides {', '.join(r.shadowed)}" if r.shadowed else ""
         print(f"  {r.name:<36} from {r.source}{extra}")

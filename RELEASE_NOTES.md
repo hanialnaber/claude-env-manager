@@ -1,4 +1,7 @@
-First release of Claude Env Manager: a small app that shows every environment variable Claude Code will see, where each one comes from, and lets you add, edit and delete them with values hidden. It runs only on your computer.
+**New in 0.1.1**
+- The green badge now reads "Claude on this computer uses this", with a link to the Cloud sessions tab. Settings on your computer don't reach Claude Code cloud sessions, and the old "Claude uses this" made it look like they did.
+
+Claude Env Manager is a small app that shows every environment variable Claude Code will see, where each one comes from, and lets you add, edit and delete them with values hidden. It runs only on your computer.
 
 **Downloads**
 - **Windows:** `ClaudeEnvManager-windows-x64.exe`

@@ -144,7 +144,8 @@
     const wins = r && r.source === s.id;
     const valCell = el("td", { class: "val" }, v.masked, el("span", { class: "muted" }, `  ${v.length} chars`));
     const status = el("td", {},
-      wins ? el("span", { class: "badge win" }, "Claude uses this") : el("span", { class: "badge lose", title: "A higher-priority scope sets the same name" }, "overridden by " + SHORT[r.source]),
+      wins ? el("span", { class: "badge win", title: "Claude Code started on this computer gets this value" }, "Claude on this computer uses this") : el("span", { class: "badge lose", title: "A higher-priority scope sets the same name" }, "overridden by " + SHORT[r.source]),
+      wins ? el("button", { class: "linkbtn", title: "Cloud sessions don't read this computer's settings", onclick: () => goTab("cloud") }, "Cloud sessions? Set it up there") : null,
       v.secret ? el("span", { class: "badge secret" }, "secret") : null);
     const acts = el("td", { class: "acts" });
     const revealBtn = el("button", { class: "btn small ghost" }, "Reveal");
@@ -293,7 +294,7 @@
       (r.notes || []).forEach((n) => items.push(el("li", {}, n)));
       items.push(el("li", {}, "Cloud sessions don't read this machine's settings. Check those with the command in the Cloud sessions tab."));
       out.append(el("div", { class: "result " + (r.present ? "ok" : "bad") },
-        el("h3", {}, r.present ? `${r.name} is visible to Claude, from ${SHORT[r.source]}` : `${r.name} is missing`),
+        el("h3", {}, r.present ? `${r.name} is visible to Claude on this computer, from ${SHORT[r.source]}` : `${r.name} is missing`),
         el("ul", {}, items)));
     } catch (e) { banner(e.message, "bad"); }
   });
@@ -342,10 +343,12 @@
   });
 
   // ---- tabs & project ----
-  document.querySelectorAll(".tab").forEach((t) => t.addEventListener("click", () => {
-    document.querySelectorAll(".tab").forEach((x) => x.classList.toggle("active", x === t));
-    ["vars", "monitor", "cloud"].forEach((id) => $("tab-" + id).classList.toggle("hidden", id !== t.dataset.tab));
-  }));
+  function goTab(name) {
+    document.querySelectorAll(".tab").forEach((x) => x.classList.toggle("active", x.dataset.tab === name));
+    ["vars", "monitor", "cloud"].forEach((id) => $("tab-" + id).classList.toggle("hidden", id !== name));
+    window.scrollTo(0, 0);
+  }
+  document.querySelectorAll(".tab").forEach((t) => t.addEventListener("click", () => goTab(t.dataset.tab)));
   $("loadProject").addEventListener("click", () => { projectPath = $("project").value.trim(); load(); });
   $("project").addEventListener("keydown", (e) => { if (e.key === "Enter") $("loadProject").click(); });
   $("refresh").addEventListener("click", load);
