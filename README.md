@@ -151,9 +151,11 @@ python3 demo/build_demo.py                # rebuilds demo/demo.html
 ```
 
 Releases: in the Actions tab, run **Release** and type a version like
-`v0.1.0` (or push that tag). The workflow tests on Windows,
-macOS and Linux, builds the apps with PyInstaller, and attaches them with
-checksums to the release. Release notes come from `RELEASE_NOTES.md`.
+`v0.1.0` (or push that tag). The workflow runs the tests,
+builds the apps with PyInstaller on Windows and macOS, attaches them with
+checksums to a draft release, and publishes it once every build is in.
+Release notes come from `RELEASE_NOTES.md`. macOS runners can queue for
+a while; leave the run going.
 
 `demo/demo.html` is the real interface running on made-up example data, in a
 single file you can open in any browser. It doesn't touch your computer.
