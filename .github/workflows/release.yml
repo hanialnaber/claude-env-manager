@@ -1,8 +1,16 @@
 name: Release
 
-# Push a tag like v0.1.0 to build the Windows and macOS apps and attach
-# them, with SHA-256 checksums, to a GitHub release for that tag.
+# Builds the Windows and macOS apps and attaches them, with SHA-256
+# checksums, to a GitHub release. Start it either way:
+#   - Actions tab > Release > Run workflow, and type a version like v0.1.0
+#   - or push a tag like v0.1.0
 on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Version tag to create and release, e.g. v0.1.0"
+        required: true
+        default: "v0.1.0"
   push:
     tags: ["v*"]
 
@@ -23,8 +31,33 @@ jobs:
           python-version: "3.12"
       - run: python -m unittest discover -s tests
 
-  build:
+  release:
     needs: test
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: tag
+        shell: bash
+        env:
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          TAG="${INPUT_TAG:-$GITHUB_REF_NAME}"
+          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([.-][A-Za-z0-9.]+)?$ ]]; then
+            echo "Tag must look like v0.1.0"; exit 1
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+      - name: Create the release (and the tag, if it doesn't exist yet)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          name: Claude Env Manager ${{ steps.tag.outputs.tag }}
+          body_path: RELEASE_NOTES.md
+
+  build:
+    needs: release
     strategy:
       fail-fast: false
       matrix:
@@ -75,8 +108,7 @@ jobs:
       - name: Attach to release
         uses: softprops/action-gh-release@v2
         with:
-          name: Claude Env Manager ${{ github.ref_name }}
-          body_path: RELEASE_NOTES.md
+          tag_name: ${{ needs.release.outputs.tag }}
           files: |
             ${{ matrix.asset }}
             ${{ matrix.asset }}.sha256

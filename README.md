@@ -150,7 +150,8 @@ python3 -m unittest discover -s tests     # 16 tests, fake values only
 python3 demo/build_demo.py                # rebuilds demo/demo.html
 ```
 
-Releases: push a tag like `v0.1.0`. The `Release` workflow tests on Windows,
+Releases: in the Actions tab, run **Release** and type a version like
+`v0.1.0` (or push that tag). The workflow tests on Windows,
 macOS and Linux, builds the apps with PyInstaller, and attaches them with
 checksums to the release. Release notes come from `RELEASE_NOTES.md`.
 
